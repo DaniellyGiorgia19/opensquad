@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, stat, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, stat, readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { init } from '../src/init.js';
@@ -398,6 +398,96 @@ test('init with _ides codex creates .agents/skills/opensquad/SKILL.md', async ()
     assert.ok(content.includes('name: opensquad'));
     assert.ok(content.includes('description:'));
     assert.ok(content.includes('AGENTS.md'));
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('init with vscode-copilot creates .github/prompts/opensquad.prompt.md', async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), 'opensquad-test-'));
+  try {
+    await init(tempDir, { _skipPrompts: true, _ides: ['vscode-copilot'] });
+    const content = await readFile(
+      join(tempDir, '.github', 'prompts', 'opensquad.prompt.md'),
+      'utf-8'
+    );
+    assert.ok(content.includes('mode:'));
+    assert.ok(content.includes('opensquad'));
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('init with vscode-copilot creates .vscode/mcp.json with playwright server', async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), 'opensquad-test-'));
+  try {
+    await init(tempDir, { _skipPrompts: true, _ides: ['vscode-copilot'] });
+    const content = await readFile(join(tempDir, '.vscode', 'mcp.json'), 'utf-8');
+    const config = JSON.parse(content);
+    assert.ok(config.servers?.playwright, 'playwright server missing');
+    assert.ok(config.servers.playwright.args.includes('--config'));
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('init with vscode-copilot creates .vscode/settings.json with promptFilesLocations when no file exists', async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), 'opensquad-test-'));
+  try {
+    await init(tempDir, { _skipPrompts: true, _ides: ['vscode-copilot'] });
+    const content = await readFile(join(tempDir, '.vscode', 'settings.json'), 'utf-8');
+    const settings = JSON.parse(content);
+    assert.ok(
+      Array.isArray(settings['chat.promptFilesLocations']),
+      'chat.promptFilesLocations should be an array'
+    );
+    assert.ok(
+      settings['chat.promptFilesLocations'].includes('.github/prompts'),
+      '.github/prompts should be in the array'
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('init with vscode-copilot merges .vscode/settings.json when file already exists', async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), 'opensquad-test-'));
+  try {
+    const vscodePath = join(tempDir, '.vscode');
+    await mkdir(vscodePath, { recursive: true });
+    await writeFile(
+      join(vscodePath, 'settings.json'),
+      JSON.stringify({ 'editor.fontSize': 14 }),
+      'utf-8'
+    );
+
+    await init(tempDir, { _skipPrompts: true, _ides: ['vscode-copilot'] });
+
+    const content = await readFile(join(vscodePath, 'settings.json'), 'utf-8');
+    const settings = JSON.parse(content);
+    assert.equal(settings['editor.fontSize'], 14, 'existing key must be preserved');
+    assert.ok(
+      settings['chat.promptFilesLocations'].includes('.github/prompts'),
+      '.github/prompts must be added'
+    );
+  } finally {
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});
+
+test('init with vscode-copilot skips merge when settings.json has invalid JSON', async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), 'opensquad-test-'));
+  try {
+    const vscodePath = join(tempDir, '.vscode');
+    await mkdir(vscodePath, { recursive: true });
+    const settingsPath = join(vscodePath, 'settings.json');
+    await writeFile(settingsPath, 'not valid json', 'utf-8');
+
+    await init(tempDir, { _skipPrompts: true, _ides: ['vscode-copilot'] });
+
+    // File must NOT be overwritten
+    const content = await readFile(settingsPath, 'utf-8');
+    assert.equal(content, 'not valid json', 'malformed settings.json must not be modified');
   } finally {
     await rm(tempDir, { recursive: true, force: true });
   }
