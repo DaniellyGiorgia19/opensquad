@@ -1,0 +1,59 @@
+# Marketing Pipeline Steps
+
+steps:
+  - id: pesquisa
+    agent: pesquisador
+    stepFile: steps/pesquisa.md
+    execution: inline
+    outputFile: squads/marketing-pipeline/output/pesquisa-briefing.md
+
+  - id: planejamento
+    agent: planejador
+    stepFile: steps/planejamento.md
+    execution: inline
+    inputFile: squads/marketing-pipeline/output/pesquisa-briefing.md
+    outputFile: squads/marketing-pipeline/output/calendario-editorial.md
+
+  - id: copywriting
+    agent: copywriter
+    stepFile: steps/copywriting.md
+    execution: inline
+    inputFile: squads/marketing-pipeline/output/calendario-editorial.md
+    outputFile: squads/marketing-pipeline/output/copys-completas.md
+
+  - id: revisao
+    agent: revisor
+    stepFile: steps/revisao.md
+    execution: inline
+    inputFile: squads/marketing-pipeline/output/copys-completas.md
+    outputFile: squads/marketing-pipeline/output/copys-revisadas.md
+    on_reject: copywriting
+
+  - id: design
+    agent: designer
+    stepFile: steps/design.md
+    execution: inline
+    inputFile: squads/marketing-pipeline/output/copys-revisadas.md
+    outputFile: squads/marketing-pipeline/output/pecas-visuais.md
+
+  - id: qa
+    agent: qa
+    stepFile: steps/qa.md
+    execution: inline
+    inputFile: squads/marketing-pipeline/output/pecas-visuais.md
+    outputFile: squads/marketing-pipeline/output/relatorio-qa.md
+    on_reject: design
+
+  - id: publicacao
+    agent: publicador
+    stepFile: steps/publicacao.md
+    execution: inline
+    inputFile: squads/marketing-pipeline/output/relatorio-qa.md
+    outputFile: squads/marketing-pipeline/output/agendamento.md
+
+  - id: analise
+    agent: analista
+    stepFile: steps/analise.md
+    execution: inline
+    inputFile: squads/marketing-pipeline/output/agendamento.md
+    outputFile: squads/marketing-pipeline/output/relatorio-performance.md

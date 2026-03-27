@@ -1,0 +1,9 @@
+path,displayName,icon,role,model_tier
+./agents/pesquisador.agent.md,Pesquisador,🔍,researcher,fast
+./agents/planejador.agent.md,Planejador,🗓️,writer,powerful
+./agents/copywriter.agent.md,Copywriter,✍️,writer,powerful
+./agents/revisor.agent.md,Revisor,📝,writer,powerful
+./agents/designer.agent.md,Designer,🎨,writer,powerful
+./agents/qa.agent.md,QA,✅,writer,powerful
+./agents/publicador.agent.md,Publicador,📤,researcher,fast
+./agents/analista.agent.md,Analista,📊,researcher,fast

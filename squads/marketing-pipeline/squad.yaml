@@ -1,0 +1,24 @@
+# Marketing Pipeline Squad
+code: marketing-pipeline
+name: Marketing Pipeline
+description: Pipeline completo de produção de conteúdo para marketing digital. Os agentes trabalham em sequência para pesquisar, planejar, escrever, revisar, criar peças visuais, validar qualidade, publicar e analisar resultados.
+language: pt-BR
+
+skills:
+  - web_search
+  - web_fetch
+  - image-generator
+
+pipeline:
+  steps:
+    - pesquisa
+    - planejamento
+    - copywriting
+    - revisao
+    - design
+    - qa
+    - publicacao
+    - analise
+
+settings:
+  max_review_cycles: 2
